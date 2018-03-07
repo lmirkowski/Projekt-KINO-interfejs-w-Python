@@ -4,7 +4,7 @@ import pymysql
 class DBConn:
     def __init__(self):
         while(True):
-            quit = input('1.Zaloguj, 2.Wyjdź ')
+            quit = input('1.Logowanie, 2.Wyjście  ')
             if(quit == '2'):
                 break
             self.connString()
@@ -77,3 +77,8 @@ class DBConn:
     def connClose(self):
         self.conn.close()
 db = DBConn()
+'''
+class User:
+    def __init__(self):
+       
+'''

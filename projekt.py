@@ -11,7 +11,7 @@ class DBConn:
             perm = self.login()
             if(perm.upper() == 'A'):
                 while(True):
-                    dec = input('1.Select, 2.Delete, 3.Insert, 4.Logout')
+                    dec = input('1.Select, 2.Delete, 3.Insert, 4.Wyloguj ')
                     if(dec == '1'):
                         self.select()
                     elif(dec == '2'):
@@ -25,33 +25,46 @@ class DBConn:
                         print('Zły wybór')
             elif(perm.upper() == 'U'):
                 while(True):
-                    dec = input('1.Select, 2.Logout')
+                    dec = input('1.Wybierz tytuł filmu, 2.Wyloguj ')
                     if(dec == '1'):
-                        self.select()
+                        self.selectMovie()
+                        self.showChosenMowie()
                     elif(dec == '2'):
                         self.connClose()
                         break
                     else:
                         print('Zły wybór')               
             else:
-                print('błąd logowania!')
+                print('Błąd logowania!')
         
     def login(self):
-        mail = input('podaj maila: ')
-        passwd = input('podaj hasło: ')
-        self.c.execute('SELECT perm FROM login WHERE mail=%s AND pass=%s', (mail, passwd))
+        login = input('podaj maila: ')
+        password = input('podaj hasło: ')
+        self.c.execute('SELECT perm FROM logowanie WHERE login=%s AND password=%s;', (login, password))
         try:
             perm = self.c.fetchall()[0][0]
         except:
             perm = '0'
         return perm
     def connString(self):
-        self.conn = pymysql.connect('localhost','puser','abc123','warrior')
+        self.conn = pymysql.connect('localhost','project','project','kinokopia')
         self.c = self.conn.cursor()
-    def select(self):
-        self.c.execute('SELECT * FROM characters;')
+    def selectMovie(self):
+        self.c.execute('SELECT idfilm, title FROM film;')
         for row in self.c.fetchall():
-            print('%3i %15s %15s %15s %5i %5i' % (row[0], row[1], row[2], row[3], row[4], row[5]))
+            print('%2i %-50s' % (row[0], row[1]))
+            
+    def showChosenMowie(self):# dokończyć formatowanie wyswietlania opisu + dokończyć warunki dla każdego filmu
+        
+        
+        idfilm = input('Podaj numer filmu')
+        if(idfilm == '1'):
+            self.c.execute('SELECT idfilm, title, rok_prod, kraj, rezyser, czas_trwania, ogr_wiek, gatunek, obsada, opis FROM film where idfilm=1;')
+            for row in self.c.fetchall():
+                print('%2i.| Tytuł: %-35s \n Rok produkcji: %-4i | Kraj: %-15s | Reżyser: %-25s \n %-10s %-3s %-30s %-120s %-500s' % (row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9]))                            
+        else:
+                print('Podaj poprawny numer filmu')       
+        
     def delete(self):
         try:    
             self.select()

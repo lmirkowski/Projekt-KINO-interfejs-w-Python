@@ -55,6 +55,7 @@ class DBConn:
             if(dec == '1'):
                 self.selectMovie()
                 self.showChosenMowie(id)
+                break
                 
             elif(dec == '2'):
                 self.connClose()

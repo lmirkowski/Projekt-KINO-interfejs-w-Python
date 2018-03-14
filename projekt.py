@@ -55,14 +55,28 @@ class DBConn:
             if(dec == '1'):
                 self.selectMovie()
                 self.showChosenMowie(id)
-                break
+                self.dateAndTime(id)
+                
                 
             elif(dec == '2'):
                 self.connClose()
                 break
             else:
                 print('Zły wybór')
-        
+                
+    def dateAndTime(self, id): # Wyświetla dostępną datę i godzinę seansu dla wybranego filmu
+        while(True):
+            dec = input('1.Wybierz datę i godzinę seansu, 2.Wyloguj ')
+            id = dec
+            if(dec == '1'):
+                self.c.execute('SELECT idseans, data, godzina FROM seans WHERE film_idfilm=%s;', id)
+                for row in self.c.fetchall():
+                    print('%2i %-15s %-15s' % (row[0], row[1], row[2]))
+            elif(dec == '2'):
+                self.connClose()
+                break
+            else:
+                print('Zły wybór')
     
     def connString(self):
         self.conn = pymysql.connect('localhost','project','project','kinokopia')

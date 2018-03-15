@@ -97,15 +97,65 @@ class DBConn:
         input('Liczba biletów normalnych:  ')
         input('Liczba biletów ulgowych::  ')
         
-    def delete(self):
+        
+    def select(self):
+        dec = input('1.Lista filmów, 2.Lista seansów, 3.Wyloguj ')
+        if(dec == '1'):
+            self.selectMovie()
+            self.showChosenMowieAdm(id)
+        elif(dec == '2'):
+            self.selectShowing()
+        elif(dec == '3'):
+            self.connClose()
+        else:
+            print('Zły wybór')
+            
+    def showChosenMowieAdm(self, id):   # Wyświetla opis filmu wybranego przez administratora
+        print('--------------------------------------------')
+        idfilm = input('Podaj numer filmu ')
+        print('--------------------------------------------')
+        id = idfilm 
+        self.c.execute('SELECT idfilm, title, rok_prod, kraj, rezyser, czas_trwania, ogr_wiek, gatunek, obsada, opis FROM film where idfilm=%s;', id)
+        for row in self.c.fetchall():
+            print('%2i.| Tytuł: %-35s \n Rok produkcji: %-4i | Kraj: %-15s | Reżyser: %-25s \n Czas trwania: %-10s | Ograniczenie wiekowe %-3s | Gatunek: %-30s | Obsada: %-120s | Opis: %-500s' % (row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9    ])) 
+            
+    def selectShowing(self): # Wyświetla listę tytułów dostępnych seansów (dla admina)
+        self.c.execute('SELECT * FROM seans;')
+        for row in self.c.fetchall():
+            print('%2i %-10s %-5s %-2i %-1i' % (row[0], row[1], row[2], row[3], row[4]))
+            
+    def deleteMovie(self, id):
+        try:    
+            self.selectMovie()
+            id = int(input('Podaj ID filmu do usunięcia: '))
+            self.c.execute('DELETE FROM film WHERE idfilm=%s;', id)
+            self.conn.commit()
+            self.selectMovie()
+        except:
+            print('Podałeś błędny id!')
+            
+    def deleteShowing(self, id):
         try:    
             self.select()
-            id = int(input('ID do usunięcia: '))
-            self.c.execute('DELETE FROM characters WHERE id=%s;', id)
+            id = int(input('Podaj ID seansu do usunięcia: '))
+            self.c.execute('DELETE FROM film WHERE idseans=%s;', id)
             self.conn.commit()
             self.select()
         except:
             print('Podałeś błędny id!')
+            
+    def delete(self):
+        print('--------------------------------------------------------------')
+        dec = input('1.Usuń film z listy, 2.Usuń seans z listy, 3.Wyloguj ')
+        print('--------------------------------------------------------------')
+        if(dec == '1'):
+            self.deleteMovie(id)
+        elif(dec == '2'):
+            self.deleteShowing(id)
+        elif(dec == '3'):
+            self.connClose()
+        else:
+            print('Zły wybór')
             
     def insert(self):
         try:

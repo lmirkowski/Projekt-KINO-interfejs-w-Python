@@ -3,6 +3,7 @@ import pymysql
 
 class DBConn:
     def __init__(self):
+        
         while(True):
             quit = input('1.Logowanie, 2.Wyjście  ')
             if(quit == '2'):
@@ -51,33 +52,18 @@ class DBConn:
                 
     def uprUser(self): #wyświetla uprawnienia usera - dalej wybór filmu i rezerwacja
         while(True):
-            dec = input('1.Wybierz tytuł filmu, 2.Wyloguj ')
+            print('')
+            dec = input('1.Wyświetl listę filmów,    2.Wyloguj ')
             if(dec == '1'):
                 self.selectMovie()
                 self.showChosenMowie(id)
-                self.dateAndTime(id)
-                
-                
+                self.chooseShowing()
             elif(dec == '2'):
                 self.connClose()
                 break
             else:
                 print('Zły wybór')
-                
-    def dateAndTime(self, id): # Wyświetla dostępną datę i godzinę seansu dla wybranego filmu
-        while(True):
-            dec = input('1.Wybierz datę i godzinę seansu, 2.Wyloguj ')
-            id = dec
-            if(dec == '1'):
-                self.c.execute('SELECT idseans, data, godzina FROM seans WHERE film_idfilm=%s;', id)
-                for row in self.c.fetchall():
-                    print('%2i %-15s %-15s' % (row[0], row[1], row[2]))
-            elif(dec == '2'):
-                self.connClose()
-                break
-            else:
-                print('Zły wybór')
-    
+
     def connString(self):
         self.conn = pymysql.connect('localhost','project','project','kinokopia')
         self.c = self.conn.cursor()
@@ -87,13 +73,30 @@ class DBConn:
         for row in self.c.fetchall():
             print('%2i %-50s' % (row[0], row[1]))
             
-    def showChosenMowie(self, id):   # Wyświetla opis filmu wybranego przez użytkownika
+    def showChosenMowie(self, id):   # Wyświetla opis filmu wybranego przez użytkownika oraz dostępne seanse
+        print('--------------------------------------------')
         idfilm = input('Podaj numer filmu ')
+        print('--------------------------------------------')
         id = idfilm 
         self.c.execute('SELECT idfilm, title, rok_prod, kraj, rezyser, czas_trwania, ogr_wiek, gatunek, obsada, opis FROM film where idfilm=%s;', id)
         for row in self.c.fetchall():
             print('%2i.| Tytuł: %-35s \n Rok produkcji: %-4i | Kraj: %-15s | Reżyser: %-25s \n Czas trwania: %-10s | Ograniczenie wiekowe %-3s | Gatunek: %-30s | Obsada: %-120s | Opis: %-500s' % (row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9    ])) 
-    
+        self.c.execute('SELECT * FROM seans WHERE film_idfilm=(SELECT idfilm from film where idfilm=%s);', id)
+        for row in self.c.fetchall():
+            print('--------------------------------------------')
+            print('Dostępne seanse')
+            print('--------------------------------------------')
+            print('%2i %-15s %-15s' % (row[0], row[1], row[2]))   
+            
+    def chooseShowing(self):
+        print('--------------------------------------------')
+        idseans = input('Wybierz seans ')
+        print('')
+        print('Cennik biletów: Noramlny 25 zł, Ulgowy 20 zł')
+        print('')
+        input('Liczba biletów normalnych:  ')
+        input('Liczba biletów ulgowych::  ')
+        
     def delete(self):
         try:    
             self.select()

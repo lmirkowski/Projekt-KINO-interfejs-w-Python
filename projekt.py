@@ -25,7 +25,7 @@ class DBConn:
             else:
                 print('Błąd logowania!')
                         
-    def login(self):
+    def login(self): # logowanie - pobiera maila i hasło z mysql i sprawdza przypisane uprawnienia
         email = input('Podaj swój email: ')
         password = input('Podaj swoje hasło: ')
         self.c.execute('SELECT perm FROM logowanie WHERE email=%s AND password=%s;', (email, password))
@@ -64,8 +64,8 @@ class DBConn:
             else:
                 print('Zły wybór')
 
-    def connString(self):
-        self.conn = pymysql.connect('localhost','project','project','kinokopia')
+    def connString(self): # Ustanowienie połączenia z bazą mysql
+        self.conn = pymysql.connect(host='localhost', user='project', password='project', db='kinokopia', charset='utf8', use_unicode=True)
         self.c = self.conn.cursor()
         
     def selectMovie(self): # Wyświetla listę tytułów dostępnych filmów 
@@ -88,7 +88,7 @@ class DBConn:
             print('--------------------------------------------')
             print('%2i %-15s %-15s' % (row[0], row[1], row[2]))   
             
-    def chooseShowing(self):
+    def chooseShowing(self): # Wybór seansu i biletów //nie oprogramowane zliczanie wybranych opcji przez użytkownika aby wyświetlało się podsumowanie rezerwacji
         print('--------------------------------------------')
         idseans = input('Wybierz seans ')
         print('')
@@ -98,7 +98,7 @@ class DBConn:
         input('Liczba biletów ulgowych::  ')
         
         
-    def select(self):
+    def select(self): # Wyświetla wybór: lista filmów lub lista seansów
         dec = input('1.Lista filmów, 2.Lista seansów, 3.Wyloguj ')
         if(dec == '1'):
             self.selectMovie()
@@ -117,34 +117,36 @@ class DBConn:
         id = idfilm 
         self.c.execute('SELECT idfilm, title, rok_prod, kraj, rezyser, czas_trwania, ogr_wiek, gatunek, obsada, opis FROM film where idfilm=%s;', id)
         for row in self.c.fetchall():
-            print('%2i.| Tytuł: %-35s \n Rok produkcji: %-4i | Kraj: %-15s | Reżyser: %-25s \n Czas trwania: %-10s | Ograniczenie wiekowe %-3s | Gatunek: %-30s | Obsada: %-120s | Opis: %-500s' % (row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9    ])) 
+            print('%2i. Tytuł: %-35s \n Rok produkcji: %-4i | Kraj: %-15s | Reżyser: %-25s \n Czas trwania: %-10s | Ograniczenie wiekowe %-3s | Gatunek: %-30s \n| Obsada: %-120s \n| Opis: %-500s' % (row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9])) 
             
     def selectShowing(self): # Wyświetla listę tytułów dostępnych seansów (dla admina)
         self.c.execute('SELECT * FROM seans;')
         for row in self.c.fetchall():
             print('%2i %-10s %-5s %-2i %-1i' % (row[0], row[1], row[2], row[3], row[4]))
             
-    def deleteMovie(self, id):
+    def deleteMovie(self, id): # Usuwanie rekordu o podanym ID z tabeli film 
         try:    
             self.selectMovie()
             id = int(input('Podaj ID filmu do usunięcia: '))
             self.c.execute('DELETE FROM film WHERE idfilm=%s;', id)
             self.conn.commit()
             self.selectMovie()
+            print('\n********** Usunięto film o ID=%s **********'  % (id))
         except:
             print('Podałeś błędny id!')
             
-    def deleteShowing(self, id):
+    def deleteShowing(self, id): # Usuwanie rekordu o podanym ID z tabeli seans 
         try:    
-            self.select()
+            self.selectShowing()
             id = int(input('Podaj ID seansu do usunięcia: '))
-            self.c.execute('DELETE FROM film WHERE idseans=%s;', id)
+            self.c.execute('DELETE FROM seans WHERE idseans=%s;', id)
             self.conn.commit()
-            self.select()
+            self.selectShowing()
+            print('\n********** Usunięto seans o ID=%s **********'  % (id))
         except:
             print('Podałeś błędny id!')
             
-    def delete(self):
+    def delete(self): #Wybór: usunięcie rekordu z tabeli film lub seans
         print('--------------------------------------------------------------')
         dec = input('1.Usuń film z listy, 2.Usuń seans z listy, 3.Wyloguj ')
         print('--------------------------------------------------------------')
@@ -157,21 +159,55 @@ class DBConn:
         else:
             print('Zły wybór')
             
-    def insert(self):
+    def insert(self): # Wybór: dodanie rekordu do tabeli film lub seans
+        print('--------------------------------------------------------------')
+        dec = input('1.Dodaj film, 2.Dodaj seans, 3.Wyloguj ')
+        print('--------------------------------------------------------------')
+        if(dec == '1'):
+            self.insertMovie()
+        elif(dec == '2'):
+            self.insertShowing()
+        elif(dec == '3'):
+            self.connClose()
+        else:
+            print('Zły wybór')
+            
+    def insertMovie(self): # Dodanie rekordu to tabeli film
         try:
-            name = input('podaj imie: ')
-            last = input('podaj nazwisko: ')
-            type = input('podaj kategorie: ')
-            exp = int(input('podaj doswiadczenie: '))
-            lvl = int(input('podaj poziom: '))
-            self.c.execute('insert into characters (name,last,type,experience,lvl) values (%s, %s, %s, %s, %s);', (name,last,type,exp,lvl))
+            title = input('Tytuł filmu: ')
+            rezyser = input('Reżyser: ')
+            rokprod = int(input('Rok produkcji: '))
+            czas = input('Czas trwania: ')
+            kraj = input('Kraj: ')
+            obsada = input('Obsada: ')
+            ogrwiek = input('Ogr. wiekowe: ')
+            gatunek = input('Gatunek: ')
+            opis = input('Opis: ')
+            self.c.execute('insert into film (title,rezyser,rok_prod,czas_trwania,kraj,obsada,ogr_wiek,gatunek,opis) values (%s, %s, %s, %s, %s, %s, %s, %s, %s);', (title,rezyser,rokprod,czas,kraj,obsada,ogrwiek,gatunek,opis))
             self.conn.commit()
             self.select()
         except:
             print('Podałeś niepoprawne dane! ')
             
-    def connClose(self):
+    def insertShowing(self): # Dodanie rekordu do tabeli seans
+        try:
+            data = input('Data seansu: ')
+            godzina = input('Godzina seansu: ')
+            filmidfilm = int(input('ID filmu: '))
+            salaidsala = int(input('ID sali: '))
+            self.c.execute('insert into seans (data,godzina,film_idfilm,sala_idsala) values (%s, %s, %s, %s);', (data,godzina,filmidfilm,salaidsala))
+            self.conn.commit()
+            self.select()
+        except:
+            print('Podałeś niepoprawne dane! ')
+            
+    def connClose(self):   # Zamknięcie połączenia z bazą mysql
         self.conn.close()
+        print('\n\n\t\t***** ZOSTAŁEŚ WYLOGOWANY Z SYSTEMU *****\n\n\t\tProjekt i wykonanie: Łukasz Mirkowski 2018')
+        while(True):
+            dec = input('\nAby ponownie zalogować wybierz 1\n')
+            if(dec == '1'):
+                self.__init__()        
     
     
 db = DBConn()
